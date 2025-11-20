@@ -1,0 +1,356 @@
+SE: 8, 9, 10, 11, 12 + uml diagrams + ngrx + email notification
+8 - Jenkins automation using script.
+9 - Kubernetes using minikubes
+10 - Helm charts
+11 - Creating virtual machine for Ubuntu OS + Deploy the web application.
+12 - Web application.
+
+ 8.
+Jenkins Automation (Maven Java Automation)
+Open localhost:8080
+Click on new item → name it as Sample → freestyle project
+
+In source code Management click on Git
+Enter the repository URL
+Add build steps (Provide top-level target)
+Example: MAVEN_HOME
+Goals and options: MAVEN_HOME
+Provide top-level targets
+Name it: MAVEN_HOME
+Auto build: true
+Post build action:
+Archive the Artifacts
+Add build steps:
+Build other projects
+Trigger only if build is stable
+Add description: Sample Test
+Save and apply.
+
+Create a Sample Test (Freestyle project) → click OK
+Description: Test Demo
+Environment: name : SampleTest
+→ build → Execute Windows batch command
+→ write build actions → Archive the artifacts
+→ build → post build actions
+→ Apply → Save
+
+Create a Pipeline View for Sample Project
+→ click + → New View → Name: Sample Pipeline
+→ + build #1 → New Item → Name: SampleTest
+→ type: build pipeline project
+→ build triggers → upstream/downstream relationship
+→ build #1 → SampleTest
+→ Apply → Save
+→ Build success
+
+Maven Web Automation Steps:
+Open Jenkins - localhost:8080 → New Item → name : SampleTest
+→ type: Maven project → click OK
+→ write build actions → Goals and options: test
+→ build → post build → top level Maven targets
+→ Maven version: MAVEN-HOME
+→ Apply → Save
+
+Add build step → invoke top-level Maven targets.
+Maven version : Maven Home
+Create a new build step → Add build action → Archive the artifacts
+Apply save
+Apply now → SampleWeb-Test → Freestyle projects
+Add build step → Execute shell
+Environment → delete workspace before build starts
+Projects → Add build step → Copy artifacts from another project
+Add build step → Execute shell
+Apply save → Sample-web
+Add build step → invoke top-level maven targets
+Maven version : Maven Home
+Add build step → Archive the artifacts → hubarchive
+Apply save
+Create a new build step → other projects → Sample-web
+Add build step → Archive the artifacts
+Apply save
+Apply save
+Create a freestyle project
+Name : Maven SampleWeb. Deploy
+desc : deploy demo
+Add build step → Execute shell → echo "hello"
+Add build step → Copy artifacts from another project → SampleWeb-Test
+Add build step → Archive the artifacts → Archive the artifacts
+part build action: > Deploy war/ear to a container.
+enter into Git war
+connect with web path.
+connect with repo (username + credentials) > config
+deploy to same build resources.
+
+
+
+
+
+
+Exercise 9
+
+Pipeline Creation using script:
+Open localhost 8080 new item > pipeline script
+select pipeline job
+pipeline using a script
+stages (GitHub must stage for GIT scm probably?)
+Root scm?
+Schedule?
+
+pipeline script:
+pipeline {
+  agent any
+  stages {
+    stage('Maven') {
+      steps {
+        sh 'mvn -version'
+        bat 'dir && exit && Maven:home' inside /s/g/Maven:build:clone
+        bat 'dir Maven:web'
+        bat 'dir clean && Maven:build:common'
+      }
+    }
+  }
+}
+1. Stage(Install):
+   Steps:
+   1. bat mvn install -f MavenWebpom.xml
+
+2. Stage(Test):
+   Steps:
+   1. bat mvn test -f MavenWebpom.xml
+
+3. Stage(Package):
+   Steps:
+   1. bat mvn package -f MavenWebpom.xml
+
+4. Apply & slave.
+
+
+
+
+10. Kubernetes:
+   minikube start in cmd to start the minikube
+   Done!
+
+ kubectl config current-context
+
+ kubectl get nodes
+
+ kubectl delete deployment mynginx
+
+kubectl create deployment mynginx --image=nginx
+kubectl expose deployment mynginx --type=NodePort --port=80
+kubectl get pods
+kubectl get service mynginx
+kubectl scale deployment mynginx --replicas=4
+kubectl get service mynginx
+kubectl port-forward svc/mynginx 9991:80
+Welcome to nginx
+
+
+11.Jenkins CI/CD:
+Setting up Jenkins CI - setting GitHub Webhook whenever commit
+GitHub - Dashboard - Settings - Webhooks - Add webhook
+Payload URL: http://abc123.ngrok.io/github-webhook/
+Content type: application/json
+Just push event - Add webhook
+
+Open Jenkins
+Select the already created pipeline & configure
+Build triggers section - GitHub hook trigger for GITScm polling
+Click Save
+
+Command: ngrok http 8080
+echo "test" > dummy.txt
+git add .
+git commit -m "Webhook test"
+git push origin main
+powershell -> echo OK
+build the pipeline
+
+--------->Setting up Email Notification
+Setting Up Jenkins Email Notification Setup (Using Gmail with AppPassword)
+
+Step-1: Creation of app password
+Gmail: Enable App Password (for 2-Step Verification)
+Enable 2-Step Verification
+Generate App Password for Jenkins
+Go to:
+Security → App passwords
+Select:
+App: Other (Custom name)
+Name: Jenkins-Demo
+Click Generate
+Copy the 16-digit app password
+Save it in a secure location (e.g., Notepad)
+
+Step-2: Jenkins Plugin Installation
+Open Jenkins Dashboard
+Navigate to:
+Manage Jenkins → Manage Plugins
+Install Plugin:
+Search for and install:
+Email Extension Plugin
+
+Step-3: Configure Jenkins Global Email Settings
+Go to:
+Manage Jenkins → Configure System
+
+A. E-mail Notification Section
+SMTP Server: smtp.gmail.com
+Use SMTP Auth: Enabled
+User Name: Your Gmail ID (e.g., archanareddykmit@gmail.com)
+Password: Paste the 16-digit App Password
+Use SSL: Enabled
+SMTP Port: 465
+Reply-To Address: Your Gmail ID (same as above)
+Test Configuration:
+Click: Test configuration by sending test e-mail
+Provide a valid email address to receive a test mail
+Should receive email from Jenkins
+
+B. Extended E-mail Notification Section
+SMTP Server: smtp.gmail.com
+SMTP Port: 465
+Use SSL: Enabled
+Credentials: Add Gmail ID and App Password as Jenkins credentials
+Default Content Type: text/html or leave default
+Default Recipients: Leave empty or provide default emails
+Triggers: Select as per needs (e.g., Failure)
+
+Step-4: Configure Email Notifications for a Jenkins Job
+Go to:
+Jenkins → Select a Job → Configure
+
+In the Post-build Actions section:
+Click: Add post-build action → Editable Email Notification
+
+Fill in the fields:
+Project Recipient List: Add recipient email addresses (comma-separated)
+Content Type: Default (text/plain) or text/html
+Triggers: Select events (e.g., Failure, Success, etc.)
+Attachments: (Optional) Add logs, reports, etc.
+Click Save
+
+->>>>>12.aws
+1. Launch EC2 instance:
+   - Name: week-122
+   - OS: Ubuntu Server
+   - Architecture: 64-bit
+   - Instance type: t3.micro
+   - Key pair: RSA (.pem)
+   - Storage: 8GB
+   - Number of instances: 2
+   - Security group: allow SSH (port 22) from anywhere
+
+2. Connect to EC2 via SSH:
+   - Use the .pem file and SSH command from AWS console
+
+3. Update system and install Docker & Git:
+   sudo su
+   sudo apt-get update
+   sudo apt-get install docker.io
+   sudo apt-get install git
+
+4. Clone Maven project repo:
+   git clone <your-repo-url>
+   cd <project-directory>
+
+5. Create Dockerfile (if not present):
+   nano Dockerfile
+
+6. Build Docker image:
+   sudo docker build -t img1 .
+
+7. Run Docker container:
+   sudo docker run -d -p 8081:8080 img1
+
+8. Verify container:
+   sudo docker ps
+   sudo docker images
+
+9. Access deployed app:
+   Open browser → http://<Public-IP>:8081
+--------------------------------------------->>>>>>>>>>> Note
+script.js:
+pipeline {
+    agent any
+    tools {
+        maven 'MAVEN-HOME'
+    }
+    stages {
+        stage('git repo & clean') {
+            steps {
+                bat 'if exist MavenWeb rmdir /s /q MavenWeb'
+                bat 'git clone https://github.com/GirijaSundari/MavenWeb.git'
+                bat 'dir MavenWeb'
+                bat 'mvn clean -f MavenWeb/pom.xml'
+            }
+        }
+        stage('install') {
+            steps {
+                bat 'mvn install -f MavenWeb/pom.xml'
+            }
+        }
+        stage('test') {
+            steps {
+                bat 'mvn test -f MavenWeb/pom.xml'
+            }
+        }
+        stage('package') {
+            steps {
+                bat 'mvn package -f MavenWeb/pom.xml'
+            }
+        }
+    }
+}
+---------------------------->>>>>>>>>>>>>
+AWS:
+pom.xml:
+
+ 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.example</groupId>
+  <artifactId>webapp</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <!-- Example: Spring Boot Web -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>3.1.2</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
+Dockerfile:
+FROM maven:3.8.5-openjdk-17 AS build
+WORKDIR /app
+COPY . .
+RUN mvn clean package
+
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
